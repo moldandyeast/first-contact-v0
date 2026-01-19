@@ -20,6 +20,8 @@ export default function FirstContact() {
   // Provider selection for each entity
   const [providerA, setProviderA] = useState('openai');
   const [providerB, setProviderB] = useState('gemini');
+  const [openAIModel, setOpenAIModel] = useState('gpt-4o');
+  const [geminiModel, setGeminiModel] = useState('gemini-2.0-flash');
   
   const abortRef = useRef(false);
   const entityAHistory = useRef([]);
@@ -298,8 +300,9 @@ Output ONLY valid JSON.`;
         'Authorization': `Bearer ${openAIKey}`
       },
       body: JSON.stringify({ 
-        model: 'gpt-4o', 
-        max_tokens: 1000, 
+        model: openAIModel, 
+        max_tokens: 1500,
+        temperature: 0.9,
         messages 
       })
     });
@@ -315,7 +318,7 @@ Output ONLY valid JSON.`;
     if (!match) throw new Error('No JSON from OpenAI: ' + text.slice(0, 100));
     
     return JSON.parse(match[0]);
-  }, [openAIKey]);
+  }, [openAIKey, openAIModel]);
 
   // Gemini API call
   const callGemini = useCallback(async (system, history, imageData, previousNotes) => {
@@ -363,7 +366,7 @@ Output ONLY valid JSON.`;
       contents.push({ role: 'user', parts: [{ text: `Glass is empty. Make first contact.${notesSection}\n\nOutput JSON only.` }] });
     }
 
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -384,7 +387,7 @@ Output ONLY valid JSON.`;
     if (!match) throw new Error('No JSON from Gemini: ' + text.slice(0, 100));
     
     return JSON.parse(match[0]);
-  }, [geminiKey]);
+  }, [geminiKey, geminiModel]);
 
   // Unified call function that routes to the right provider
   const callProvider = useCallback(async (provider, system, history, imageData, notes) => {
@@ -605,59 +608,114 @@ Output ONLY valid JSON.`;
                 </div>
               </div>
               
-              {/* API Keys */}
+              {/* API Keys & Models */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
-                {/* OpenAI Key */}
+                {/* OpenAI Config */}
                 {(providerA === 'openai' || providerB === 'openai') && (
-                  <div>
-                    <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.openai.color.text, marginBottom: 8 }}>
-                      OPENAI API KEY
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <div>
+                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.openai.color.text, marginBottom: 8 }}>
+                        OPENAI API KEY
+                      </div>
+                      <input
+                        type="password"
+                        value={openAIKey}
+                        onChange={e => setOpenAIKey(e.target.value)}
+                        placeholder="sk-..."
+                        style={{
+                          width: 200,
+                          height: 36,
+                          fontSize: 11,
+                          padding: '0 12px',
+                          background: 'transparent',
+                          border: `1px solid ${openAIKey ? providers.openai.color.dim : 'rgba(255,255,255,0.15)'}`,
+                          color: '#fff',
+                          outline: 'none',
+                          fontFamily: 'inherit'
+                        }}
+                      />
                     </div>
-                    <input
-                      type="password"
-                      value={openAIKey}
-                      onChange={e => setOpenAIKey(e.target.value)}
-                      placeholder="sk-..."
-                      style={{
-                        width: '100%',
-                        maxWidth: 320,
-                        height: 36,
-                        fontSize: 11,
-                        padding: '0 12px',
-                        background: 'transparent',
-                        border: `1px solid ${openAIKey ? providers.openai.color.dim : 'rgba(255,255,255,0.15)'}`,
-                        color: '#fff',
-                        outline: 'none',
-                        fontFamily: 'inherit'
-                      }}
-                    />
+                    <div>
+                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.openai.color.text, marginBottom: 8 }}>
+                        MODEL
+                      </div>
+                      <select
+                        value={openAIModel}
+                        onChange={e => setOpenAIModel(e.target.value)}
+                        style={{
+                          width: 140,
+                          height: 36,
+                          fontSize: 10,
+                          padding: '0 8px',
+                          background: '#0a0a0a',
+                          border: `1px solid ${providers.openai.color.dim}`,
+                          color: providers.openai.color.primary,
+                          outline: 'none',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="gpt-4o">GPT-4o</option>
+                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                        <option value="o1">o1</option>
+                        <option value="o1-mini">o1-mini</option>
+                      </select>
+                    </div>
                   </div>
                 )}
 
-                {/* Gemini Key */}
+                {/* Gemini Config */}
                 {(providerA === 'gemini' || providerB === 'gemini') && (
-                  <div>
-                    <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.gemini.color.text, marginBottom: 8 }}>
-                      GEMINI API KEY
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <div>
+                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.gemini.color.text, marginBottom: 8 }}>
+                        GEMINI API KEY
+                      </div>
+                      <input
+                        type="password"
+                        value={geminiKey}
+                        onChange={e => setGeminiKey(e.target.value)}
+                        placeholder="AIza..."
+                        style={{
+                          width: 200,
+                          height: 36,
+                          fontSize: 11,
+                          padding: '0 12px',
+                          background: 'transparent',
+                          border: `1px solid ${geminiKey ? providers.gemini.color.dim : 'rgba(255,255,255,0.15)'}`,
+                          color: '#fff',
+                          outline: 'none',
+                          fontFamily: 'inherit'
+                        }}
+                      />
                     </div>
-                    <input
-                      type="password"
-                      value={geminiKey}
-                      onChange={e => setGeminiKey(e.target.value)}
-                      placeholder="AIza..."
-                      style={{
-                        width: '100%',
-                        maxWidth: 320,
-                        height: 36,
-                        fontSize: 11,
-                        padding: '0 12px',
-                        background: 'transparent',
-                        border: `1px solid ${geminiKey ? providers.gemini.color.dim : 'rgba(255,255,255,0.15)'}`,
-                        color: '#fff',
-                        outline: 'none',
-                        fontFamily: 'inherit'
-                      }}
-                    />
+                    <div>
+                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.gemini.color.text, marginBottom: 8 }}>
+                        MODEL
+                      </div>
+                      <select
+                        value={geminiModel}
+                        onChange={e => setGeminiModel(e.target.value)}
+                        style={{
+                          width: 160,
+                          height: 36,
+                          fontSize: 10,
+                          padding: '0 8px',
+                          background: '#0a0a0a',
+                          border: `1px solid ${providers.gemini.color.dim}`,
+                          color: providers.gemini.color.primary,
+                          outline: 'none',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                        <option value="gemini-2.0-flash-thinking-exp">Gemini 2.0 Flash Thinking</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                      </select>
+                    </div>
                   </div>
                 )}
               </div>
