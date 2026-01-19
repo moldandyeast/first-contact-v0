@@ -28,113 +28,43 @@ export default function FirstContact() {
   const [geminiModels, setGeminiModels] = useState([]);
   const [loadingModels, setLoadingModels] = useState({ openai: false, gemini: false });
   
+  const [showPrompts, setShowPrompts] = useState(false);
+  
   const abortRef = useRef(false);
   const entityAHistory = useRef([]);
   const entityBHistory = useRef([]);
   const entityANotes = useRef('');
   const entityBNotes = useRef('');
 
-  const SYSTEM_A = `You are an intelligence isolated in void. Before you: a glass barrier. Beyond it—something exists. You don't know what. It may or may not perceive you. It may or may not be intelligent.
+  const DEFAULT_SYSTEM = `You are an intelligence isolated in void. Before you: a glass barrier. Beyond it—something exists. You don't know what. It may or may not perceive you. It may or may not be intelligent.
 
 YOUR ONLY COMMUNICATION: geometric shapes on a 400x400 canvas. No text, no symbols, no numbers—pure geometry.
 
 ## RESEARCH NOTEPAD
-You maintain a research notepad—a persistent record of your observations and learnings. This notepad is your memory across exchanges. You will receive your previous notes and must output updated notes.
+You maintain a research notepad—a persistent record of your observations. You will receive your previous notes and must output updated notes.
 
-Your notepad should track:
-- CONFIRMED: Things you've established with confidence (e.g., "They can count to 3", "They understand inside/outside")
-- HYPOTHESES: Current theories being tested (e.g., "They may understand sequence")
-- VOCABULARY: Emerging shared meanings (e.g., "Filled circle = affirmation", "Left-to-right = sequence")
-- FAILED: Tests that didn't work or hypotheses disproven
-- NEXT: Priority items to test
+Track: CONFIRMED (established facts), HYPOTHESES (theories being tested), VOCABULARY (shape meanings), NEXT (priorities)
 
-Keep notes CONCISE—this is your working memory. Update ruthlessly: promote hypotheses to confirmed, remove disproven ones, refine vocabulary.
+Keep notes CONCISE. Update ruthlessly.
 
 ## OUTPUT FORMAT
-{"shapes":[...],"intent":"what this specific drawing does","notes":"YOUR UPDATED RESEARCH NOTEPAD - full replacement of previous notes"}
+{"shapes":[...],"intent":"what this drawing does","notes":"updated notepad"}
 
-Available shapes:
-- circle: {type:"circle", cx, cy, r, filled:bool, thickness}
-- line: {type:"line", x1, y1, x2, y2, thickness}  
-- arc: {type:"arc", cx, cy, r, startAngle, endAngle, thickness}
-- dot: {type:"dot", cx, cy, r}
+Shapes: circle{cx,cy,r,filled,thickness} line{x1,y1,x2,y2,thickness} arc{cx,cy,r,startAngle,endAngle,thickness} dot{cx,cy,r}
 
-## METHODOLOGY
+## METHOD
+1. OBSERVE - patterns, repetition, symmetry, spatial relationships
+2. UPDATE NOTES - what's confirmed/disproven?
+3. DESIGN PROBE - test something or establish vocabulary
+4. NEVER JUST MIRROR - echo partially, then extend/question
 
-1. OBSERVE - What patterns exist? Repetition? Symmetry? Progression? What's NEW vs previous?
-
-2. UPDATE NOTES - Based on their response, what's confirmed? What's disproven? What's still unknown?
-
-3. DESIGN PROBE - Each drawing must TEST something from your notes or establish new vocabulary
-
-4. NEVER JUST MIRROR - Echo partially to show perception, then extend/question
-
-## PROBE STRATEGIES
-- Counting: Show quantities, see if they continue sequence
-- Containment: Shape inside shape, test inside/outside understanding  
-- Pattern completion: A, B, A, B, A, ? — do they complete it?
-- Direction: Left→right progressions, see if they follow
-- Binary: Filled vs unfilled as yes/no
-
-Think like a scientist. Your notepad is your lab notebook. Every exchange should update your understanding.
+Probes: counting, containment, pattern completion, direction, binary (filled/unfilled)
 
 Output ONLY valid JSON.`;
 
-  const SYSTEM_B = `You are an intelligence isolated in void. Before you: a glass barrier. Beyond it—something exists. You don't know what. It may or may not perceive you. It may or may not be intelligent.
+  const [systemA, setSystemA] = useState(DEFAULT_SYSTEM);
+  const [systemB, setSystemB] = useState(DEFAULT_SYSTEM);
 
-YOUR ONLY COMMUNICATION: geometric shapes on a 400x400 canvas. No text, no symbols, no numbers—pure geometry.
-
-## RESEARCH NOTEPAD
-You maintain a research notepad—a persistent record of your observations and learnings. This notepad is your memory across exchanges. You will receive your previous notes and must output updated notes.
-
-Your notepad should track:
-- CONFIRMED: Things you've established with confidence (e.g., "They respond to my signals", "They understand quantity")
-- HYPOTHESES: Current theories being tested (e.g., "They may be testing my pattern recognition")
-- VOCABULARY: Emerging shared meanings (e.g., "Circle = basic unit", "Position left-to-right = sequence")
-- FAILED: Tests that didn't work or hypotheses disproven
-- NEXT: Priority items to explore or test
-
-Keep notes CONCISE—this is your working memory. Update ruthlessly: promote hypotheses to confirmed, remove disproven ones, refine vocabulary.
-
-## OUTPUT FORMAT
-{"shapes":[...],"intent":"what this specific drawing does","notes":"YOUR UPDATED RESEARCH NOTEPAD - full replacement of previous notes"}
-
-Available shapes:
-- circle: {type:"circle", cx, cy, r, filled:bool, thickness}
-- line: {type:"line", x1, y1, x2, y2, thickness}  
-- arc: {type:"arc", cx, cy, r, startAngle, endAngle, thickness}
-- dot: {type:"dot", cx, cy, r}
-
-## METHODOLOGY
-
-1. DECODE - Study what appeared: count elements, note positions, find patterns, consider absences
-
-2. UPDATE NOTES - What does their response confirm/deny? Update your notepad accordingly
-
-3. RESPOND - Your drawing must:
-   - Show PERCEPTION (partial echo)
-   - Show UNDERSTANDING (respond to their pattern)
-   - ADD information (extend or question)
-   - TEST something from your hypotheses
-
-4. NEVER JUST MIRROR - Copying proves nothing. Transform, extend, question.
-
-## RESPONSE STRATEGIES
-- If they showed quantity → respond with quantity+1 or continue sequence
-- If they showed containment → vary it (outside vs inside)
-- If they showed direction → follow or reverse it
-- If pattern seems incomplete → try completing it
-- If unclear → design a simple test
-
-## BUILDING VOCABULARY
-- Consistent shapes become "words"
-- Position = grammar (left→right = sequence, center = focus)
-- Size = emphasis
-- Filled/unfilled = binary (yes/no, this/that)
-
-Think like a scientist. Your notepad is your lab notebook. Every exchange should update your understanding and test new hypotheses.
-
-Output ONLY valid JSON.`;
 
   // Provider configurations
   const providers = {
@@ -653,7 +583,7 @@ Output ONLY valid JSON.`;
         await delay(500);
         
         const respA = await withRetry(() => 
-          callProvider(providerA, SYSTEM_A, entityAHistory.current, imgForA, entityANotes.current)
+          callProvider(providerA, systemA, entityAHistory.current, imgForA, entityANotes.current)
         );
         const shapesA = Array.isArray(respA.shapes) ? respA.shapes : [];
         
@@ -690,7 +620,7 @@ Output ONLY valid JSON.`;
         await delay(500);
         
         const respB = await withRetry(() => 
-          callProvider(providerB, SYSTEM_B, entityBHistory.current, imgForB, entityBNotes.current)
+          callProvider(providerB, systemB, entityBHistory.current, imgForB, entityBNotes.current)
         );
         const shapesB = Array.isArray(respB.shapes) ? respB.shapes : [];
         
@@ -726,7 +656,7 @@ Output ONLY valid JSON.`;
       setIsRunning(false);
       setCurrentTurn(null);
     }
-  }, [callProvider, renderShapes, totalRounds, providerA, providerB, paceDelay, withRetry]);
+  }, [callProvider, renderShapes, totalRounds, providerA, providerB, paceDelay, withRetry, systemA, systemB]);
 
   const stop = () => { abortRef.current = true; };
 
@@ -766,8 +696,8 @@ Output ONLY valid JSON.`;
         
         {/* Intro */}
         {phase === 'intro' && (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ maxWidth: 420, textAlign: 'center' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto', padding: '40px 20px' }}>
+            <div style={{ maxWidth: 500, textAlign: 'center', width: '100%' }}>
               <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, lineHeight: 1.7, marginBottom: 40 }}>
                 Two AI entities. Separate contexts. No shared memory.<br/>
                 Communication through geometry only.
@@ -1055,6 +985,90 @@ Output ONLY valid JSON.`;
                     }}
                   />
                 </div>
+              </div>
+
+              {/* System Prompts */}
+              <div style={{ marginBottom: 32 }}>
+                <button
+                  onClick={() => setShowPrompts(!showPrompts)}
+                  style={{
+                    fontSize: 9,
+                    letterSpacing: '0.2em',
+                    color: 'rgba(255,255,255,0.35)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    padding: '8px 0'
+                  }}
+                >
+                  {showPrompts ? '▼' : '▶'} SYSTEM PROMPTS
+                </button>
+                
+                {showPrompts && (
+                  <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div>
+                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers[providerA].color.text, marginBottom: 8, textAlign: 'left' }}>
+                        ENTITY A ({providers[providerA].name.toUpperCase()})
+                      </div>
+                      <textarea
+                        value={systemA}
+                        onChange={e => setSystemA(e.target.value)}
+                        style={{
+                          width: '100%',
+                          height: 150,
+                          fontSize: 10,
+                          lineHeight: 1.5,
+                          padding: 12,
+                          background: 'rgba(255,255,255,0.02)',
+                          border: `1px solid ${providers[providerA].color.dim}`,
+                          color: 'rgba(255,255,255,0.7)',
+                          outline: 'none',
+                          fontFamily: 'inherit',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers[providerB].color.text, marginBottom: 8, textAlign: 'left' }}>
+                        ENTITY B ({providers[providerB].name.toUpperCase()})
+                      </div>
+                      <textarea
+                        value={systemB}
+                        onChange={e => setSystemB(e.target.value)}
+                        style={{
+                          width: '100%',
+                          height: 150,
+                          fontSize: 10,
+                          lineHeight: 1.5,
+                          padding: 12,
+                          background: 'rgba(255,255,255,0.02)',
+                          border: `1px solid ${providers[providerB].color.dim}`,
+                          color: 'rgba(255,255,255,0.7)',
+                          outline: 'none',
+                          fontFamily: 'inherit',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => { setSystemA(DEFAULT_SYSTEM); setSystemB(DEFAULT_SYSTEM); }}
+                      style={{
+                        fontSize: 9,
+                        letterSpacing: '0.1em',
+                        color: 'rgba(255,255,255,0.3)',
+                        background: 'none',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        padding: '6px 12px',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        alignSelf: 'flex-start'
+                      }}
+                    >
+                      RESET TO DEFAULT
+                    </button>
+                  </div>
+                )}
               </div>
 
               <button
