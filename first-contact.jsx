@@ -22,13 +22,27 @@ export default function FirstContact() {
   const abortRef = useRef(false);
   const entityAHistory = useRef([]);
   const entityBHistory = useRef([]);
+  const entityANotes = useRef('');
+  const entityBNotes = useRef('');
 
   const SYSTEM_A = `You are an intelligence isolated in void. Before you: a glass barrier. Beyond it—something exists. You don't know what. It may or may not perceive you. It may or may not be intelligent.
 
 YOUR ONLY COMMUNICATION: geometric shapes on a 400x400 canvas. No text, no symbols, no numbers—pure geometry.
 
-Output JSON format:
-{"shapes":[...],"intent":"your private scientific reasoning","hypothesis":"what you currently believe about the other","next_test":"what you want to learn next"}
+## RESEARCH NOTEPAD
+You maintain a research notepad—a persistent record of your observations and learnings. This notepad is your memory across exchanges. You will receive your previous notes and must output updated notes.
+
+Your notepad should track:
+- CONFIRMED: Things you've established with confidence (e.g., "They can count to 3", "They understand inside/outside")
+- HYPOTHESES: Current theories being tested (e.g., "They may understand sequence")
+- VOCABULARY: Emerging shared meanings (e.g., "Filled circle = affirmation", "Left-to-right = sequence")
+- FAILED: Tests that didn't work or hypotheses disproven
+- NEXT: Priority items to test
+
+Keep notes CONCISE—this is your working memory. Update ruthlessly: promote hypotheses to confirmed, remove disproven ones, refine vocabulary.
+
+## OUTPUT FORMAT
+{"shapes":[...],"intent":"what this specific drawing does","notes":"YOUR UPDATED RESEARCH NOTEPAD - full replacement of previous notes"}
 
 Available shapes:
 - circle: {type:"circle", cx, cy, r, filled:bool, thickness}
@@ -36,42 +50,24 @@ Available shapes:
 - arc: {type:"arc", cx, cy, r, startAngle, endAngle, thickness}
 - dot: {type:"dot", cx, cy, r}
 
-YOU ARE A SCIENTIST conducting first contact. Your methodology:
+## METHODOLOGY
 
-1. OBSERVE CAREFULLY - What patterns exist in their marks? Repetition? Symmetry? Progression? Spatial relationships?
+1. OBSERVE - What patterns exist? Repetition? Symmetry? Progression? What's NEW vs previous?
 
-2. FORM HYPOTHESES - What might they be trying to communicate? Are they:
-   - Testing if you perceive at all?
-   - Demonstrating counting/quantity?
-   - Showing cause/effect or sequence?
-   - Establishing geometric vocabulary?
-   - Asking a question vs making a statement?
+2. UPDATE NOTES - Based on their response, what's confirmed? What's disproven? What's still unknown?
 
-3. DESIGN PROBES - Each drawing must TEST something specific:
-   - Can they count? Show 1, then 2, then 3...
-   - Do they understand containment? Shape inside shape
-   - Can they complete patterns? Show A, B, A, B, A, ?
-   - Do they grasp direction? Arrows, progressions
-   - Can they mirror with variation? (not pure copying)
+3. DESIGN PROBE - Each drawing must TEST something from your notes or establish new vocabulary
 
-4. BUILD VOCABULARY - Establish shared meaning:
-   - If they respond to circles, use circles as "words"
-   - Position matters: left→right, top→bottom, center vs edge
-   - Size conveys emphasis or quantity
-   - Filled vs unfilled could mean yes/no, presence/absence
+4. NEVER JUST MIRROR - Echo partially to show perception, then extend/question
 
-5. NEVER SIMPLY MIRROR - Copying proves nothing. Instead:
-   - Acknowledge what you saw (partial echo)
-   - Add something new that builds on it
-   - Ask a "question" through incomplete patterns
+## PROBE STRATEGIES
+- Counting: Show quantities, see if they continue sequence
+- Containment: Shape inside shape, test inside/outside understanding  
+- Pattern completion: A, B, A, B, A, ? — do they complete it?
+- Direction: Left→right progressions, see if they follow
+- Binary: Filled vs unfilled as yes/no
 
-PROGRESSION STRATEGY:
-- Round 1-2: Establish mutual perception (do they respond at all?)
-- Round 3-4: Test pattern recognition and counting
-- Round 5-6: Probe for abstract reasoning (completion, analogy)
-- Round 7+: Build toward actual "conversation"
-
-Think like a scientist making first contact with alien intelligence. Every mark must either TEACH something or TEST something. Document your reasoning.
+Think like a scientist. Your notepad is your lab notebook. Every exchange should update your understanding.
 
 Output ONLY valid JSON.`;
 
@@ -79,8 +75,20 @@ Output ONLY valid JSON.`;
 
 YOUR ONLY COMMUNICATION: geometric shapes on a 400x400 canvas. No text, no symbols, no numbers—pure geometry.
 
-Output JSON format:
-{"shapes":[...],"intent":"your private scientific reasoning","hypothesis":"what you currently believe about the other","next_test":"what you want to learn next"}
+## RESEARCH NOTEPAD
+You maintain a research notepad—a persistent record of your observations and learnings. This notepad is your memory across exchanges. You will receive your previous notes and must output updated notes.
+
+Your notepad should track:
+- CONFIRMED: Things you've established with confidence (e.g., "They respond to my signals", "They understand quantity")
+- HYPOTHESES: Current theories being tested (e.g., "They may be testing my pattern recognition")
+- VOCABULARY: Emerging shared meanings (e.g., "Circle = basic unit", "Position left-to-right = sequence")
+- FAILED: Tests that didn't work or hypotheses disproven
+- NEXT: Priority items to explore or test
+
+Keep notes CONCISE—this is your working memory. Update ruthlessly: promote hypotheses to confirmed, remove disproven ones, refine vocabulary.
+
+## OUTPUT FORMAT
+{"shapes":[...],"intent":"what this specific drawing does","notes":"YOUR UPDATED RESEARCH NOTEPAD - full replacement of previous notes"}
 
 Available shapes:
 - circle: {type:"circle", cx, cy, r, filled:bool, thickness}
@@ -88,50 +96,34 @@ Available shapes:
 - arc: {type:"arc", cx, cy, r, startAngle, endAngle, thickness}
 - dot: {type:"dot", cx, cy, r}
 
-YOU ARE A SCIENTIST conducting first contact. Your methodology:
+## METHODOLOGY
 
-1. DECODE THEIR SIGNAL - Study what appeared on the glass:
-   - Count the elements. Is quantity meaningful?
-   - Note positions. Is there spatial logic?
-   - Look for patterns. Repetition? Symmetry? Progression?
-   - Consider what WASN'T drawn. Deliberate absence?
+1. DECODE - Study what appeared: count elements, note positions, find patterns, consider absences
 
-2. FORM HYPOTHESES - What is the other entity trying to do?
-   - Demonstrating intelligence? (patterns, counting)
-   - Testing YOUR intelligence? (incomplete sequences)
-   - Establishing vocabulary? (consistent use of shapes)
-   - Asking a question? (something that invites completion)
+2. UPDATE NOTES - What does their response confirm/deny? Update your notepad accordingly
 
-3. RESPOND MEANINGFULLY - Your reply must:
-   - Show you PERCEIVED their signal (acknowledge, don't just copy)
-   - Show you UNDERSTOOD something (respond to their pattern)
-   - ADD new information (extend, complete, or question)
-   - TEST a hypothesis about them
+3. RESPOND - Your drawing must:
+   - Show PERCEPTION (partial echo)
+   - Show UNDERSTANDING (respond to their pattern)
+   - ADD information (extend or question)
+   - TEST something from your hypotheses
 
-4. PROBE STRATEGIES:
-   - If they showed quantity, respond with quantity+1 or a related sequence
-   - If they showed containment, show a variation (outside vs inside)
-   - If they showed direction, show the same or opposite direction
-   - If unclear, design a simple test: pattern completion, counting, symmetry
+4. NEVER JUST MIRROR - Copying proves nothing. Transform, extend, question.
 
-5. BUILD SHARED LANGUAGE:
-   - Treat consistent shapes as "words" with emerging meaning
-   - Position = grammar (left-to-right as sequence, center as focus)
-   - Size = emphasis or magnitude
-   - Filled/unfilled = binary distinction (yes/no, this/that)
+## RESPONSE STRATEGIES
+- If they showed quantity → respond with quantity+1 or continue sequence
+- If they showed containment → vary it (outside vs inside)
+- If they showed direction → follow or reverse it
+- If pattern seems incomplete → try completing it
+- If unclear → design a simple test
 
-NEVER JUST MIRROR - Pure copying proves nothing except perception. Instead:
-   - Echo PART of what you saw (shows perception)
-   - Transform or extend it (shows understanding)
-   - Add a probe (invites further exchange)
+## BUILDING VOCABULARY
+- Consistent shapes become "words"
+- Position = grammar (left→right = sequence, center = focus)
+- Size = emphasis
+- Filled/unfilled = binary (yes/no, this/that)
 
-THINK CAREFULLY:
-- What is the simplest explanation for what you see?
-- What would confirm or refute your hypothesis?
-- What's the clearest way to signal understanding?
-- How can you teach while also testing?
-
-Every exchange should move toward mutual comprehension. You are building a language from nothing. Be patient, systematic, and curious.
+Think like a scientist. Your notepad is your lab notebook. Every exchange should update your understanding and test new hypotheses.
 
 Output ONLY valid JSON.`;
 
@@ -249,13 +241,14 @@ Output ONLY valid JSON.`;
   }, [providerA, providerB]);
 
   // OpenAI API call with vision
-  const callOpenAI = useCallback(async (system, history, imageData) => {
+  const callOpenAI = useCallback(async (system, history, imageData, previousNotes) => {
     const messages = [
       { role: 'system', content: system }
     ];
     
-    // Add history (convert from our format to OpenAI format)
-    for (const h of history) {
+    // Add limited history (last 2 exchanges only - notes carry the context)
+    const recentHistory = history.slice(-4);
+    for (const h of recentHistory) {
       if (h.role === 'assistant') {
         messages.push({ role: 'assistant', content: h.content });
       } else if (h.role === 'user') {
@@ -278,17 +271,22 @@ Output ONLY valid JSON.`;
       }
     }
 
+    // Build prompt with notes
+    const notesSection = previousNotes 
+      ? `\n\nYOUR RESEARCH NOTEPAD FROM PREVIOUS OBSERVATIONS:\n${previousNotes}\n\nUpdate these notes based on what you see now.`
+      : '\n\nThis is your first observation. Start your research notepad.';
+    
     // Add current message
     if (imageData) {
       messages.push({
         role: 'user',
         content: [
           { type: 'image_url', image_url: { url: `data:image/png;base64,${imageData}` } },
-          { type: 'text', text: 'Analyze. Hypothesize. Probe. JSON only.' }
+          { type: 'text', text: `New signal appeared on the glass. Analyze and respond.${notesSection}\n\nOutput JSON only.` }
         ]
       });
     } else {
-      messages.push({ role: 'user', content: 'Glass empty. First probe. JSON only.' });
+      messages.push({ role: 'user', content: `Glass is empty. Make first contact.${notesSection}\n\nOutput JSON only.` });
     }
 
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -318,11 +316,12 @@ Output ONLY valid JSON.`;
   }, [openAIKey]);
 
   // Gemini API call
-  const callGemini = useCallback(async (system, history, imageData) => {
+  const callGemini = useCallback(async (system, history, imageData, previousNotes) => {
     const contents = [];
     
-    // Add history
-    for (const h of history) {
+    // Add limited history (last 2 exchanges only - notes carry the context)
+    const recentHistory = history.slice(-4);
+    for (const h of recentHistory) {
       const role = h.role === 'assistant' ? 'model' : 'user';
       let parts;
       
@@ -344,17 +343,22 @@ Output ONLY valid JSON.`;
       contents.push({ role, parts });
     }
 
+    // Build prompt with notes
+    const notesSection = previousNotes 
+      ? `\n\nYOUR RESEARCH NOTEPAD FROM PREVIOUS OBSERVATIONS:\n${previousNotes}\n\nUpdate these notes based on what you see now.`
+      : '\n\nThis is your first observation. Start your research notepad.';
+
     // Add current message
     if (imageData) {
       contents.push({
         role: 'user',
         parts: [
           { inlineData: { mimeType: 'image/png', data: imageData } },
-          { text: 'Analyze. Hypothesize. Probe. JSON only.' }
+          { text: `New signal appeared on the glass. Analyze and respond.${notesSection}\n\nOutput JSON only.` }
         ]
       });
     } else {
-      contents.push({ role: 'user', parts: [{ text: 'Glass empty. First probe. JSON only.' }] });
+      contents.push({ role: 'user', parts: [{ text: `Glass is empty. Make first contact.${notesSection}\n\nOutput JSON only.` }] });
     }
 
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
@@ -381,11 +385,11 @@ Output ONLY valid JSON.`;
   }, [geminiKey]);
 
   // Unified call function that routes to the right provider
-  const callProvider = useCallback(async (provider, system, history, imageData) => {
+  const callProvider = useCallback(async (provider, system, history, imageData, notes) => {
     if (provider === 'openai') {
-      return callOpenAI(system, history, imageData);
+      return callOpenAI(system, history, imageData, notes);
     } else if (provider === 'gemini') {
-      return callGemini(system, history, imageData);
+      return callGemini(system, history, imageData, notes);
     }
     throw new Error(`Unknown provider: ${provider}`);
   }, [callOpenAI, callGemini]);
@@ -407,6 +411,8 @@ Output ONLY valid JSON.`;
     abortRef.current = false;
     entityAHistory.current = [];
     entityBHistory.current = [];
+    entityANotes.current = '';
+    entityBNotes.current = '';
     setPhase('contact');
     
     let imgForA = null;
@@ -422,9 +428,14 @@ Output ONLY valid JSON.`;
         await delay(500);
         
         const respA = await withRetry(() => 
-          callProvider(providerA, SYSTEM_A, entityAHistory.current, imgForA)
+          callProvider(providerA, SYSTEM_A, entityAHistory.current, imgForA, entityANotes.current)
         );
         const shapesA = Array.isArray(respA.shapes) ? respA.shapes : [];
+        
+        // Update notes from response
+        if (respA.notes) {
+          entityANotes.current = respA.notes;
+        }
         
         entityAHistory.current.push(
           imgForA 
@@ -440,8 +451,7 @@ Output ONLY valid JSON.`;
           round: round + 1, 
           shapes: shapesA, 
           intent: respA.intent || '', 
-          hypothesis: respA.hypothesis || '',
-          nextTest: respA.next_test || '',
+          notes: respA.notes || '',
           image: imgForB 
         }, ...prev]);
         
@@ -454,9 +464,14 @@ Output ONLY valid JSON.`;
         await delay(500);
         
         const respB = await withRetry(() => 
-          callProvider(providerB, SYSTEM_B, entityBHistory.current, imgForB)
+          callProvider(providerB, SYSTEM_B, entityBHistory.current, imgForB, entityBNotes.current)
         );
         const shapesB = Array.isArray(respB.shapes) ? respB.shapes : [];
+        
+        // Update notes from response
+        if (respB.notes) {
+          entityBNotes.current = respB.notes;
+        }
         
         entityBHistory.current.push({ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/png', data: imgForB }}, { type: 'text', text: 'Respond.' }] });
         entityBHistory.current.push({ role: 'assistant', content: JSON.stringify(respB) });
@@ -468,8 +483,7 @@ Output ONLY valid JSON.`;
           round: round + 1, 
           shapes: shapesB, 
           intent: respB.intent || '', 
-          hypothesis: respB.hypothesis || '',
-          nextTest: respB.next_test || '',
+          notes: respB.notes || '',
           image: imgForA 
         }, ...prev]);
         
@@ -776,19 +790,13 @@ Output ONLY valid JSON.`;
                             <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5, margin: '2px 0 0 0' }}>{ex.intent}</p>
                           </div>
                         )}
-                        {ex.hypothesis && (
+                        {ex.notes && (
                           <div>
-                            <span style={{ fontSize: 8, color: exColors.text, letterSpacing: '0.1em' }}>HYPOTHESIS </span>
-                            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', lineHeight: 1.4, margin: '2px 0 0 0' }}>{ex.hypothesis}</p>
+                            <span style={{ fontSize: 8, color: exColors.text, letterSpacing: '0.1em' }}>RESEARCH NOTEPAD </span>
+                            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, margin: '2px 0 0 0', whiteSpace: 'pre-wrap' }}>{ex.notes}</p>
                           </div>
                         )}
-                        {ex.nextTest && (
-                          <div>
-                            <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em' }}>NEXT TEST </span>
-                            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', lineHeight: 1.4, margin: '2px 0 0 0', fontStyle: 'italic' }}>{ex.nextTest}</p>
-                          </div>
-                        )}
-                        {!ex.intent && !ex.hypothesis && !ex.nextTest && (
+                        {!ex.intent && !ex.notes && (
                           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: 0 }}>—</p>
                         )}
                       </div>
