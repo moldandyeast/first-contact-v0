@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 export default function FirstContact() {
   const [phase, setPhase] = useState('intro');
@@ -22,6 +22,9 @@ export default function FirstContact() {
   const [providerB, setProviderB] = useState('gemini');
   const [openAIModel, setOpenAIModel] = useState('gpt-4o');
   const [geminiModel, setGeminiModel] = useState('gemini-2.0-flash');
+  const [openAIModels, setOpenAIModels] = useState([]);
+  const [geminiModels, setGeminiModels] = useState([]);
+  const [loadingModels, setLoadingModels] = useState({ openai: false, gemini: false });
   
   const abortRef = useRef(false);
   const entityAHistory = useRef([]);
@@ -161,6 +164,100 @@ Output ONLY valid JSON.`;
   };
 
   const delay = ms => new Promise(r => setTimeout(r, ms));
+
+  // Fetch available OpenAI models
+  const fetchOpenAIModels = useCallback(async () => {
+    if (!openAIKey || openAIKey.length < 10) return;
+    setLoadingModels(prev => ({ ...prev, openai: true }));
+    try {
+      const res = await fetch('https://api.openai.com/v1/models', {
+        headers: { 'Authorization': `Bearer ${openAIKey}` }
+      });
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      // Filter for chat/vision models, sort by id
+      const chatModels = data.data
+        .filter(m => 
+          m.id.includes('gpt-4') || 
+          m.id.includes('gpt-3.5') || 
+          m.id.startsWith('o1') ||
+          m.id.startsWith('o3')
+        )
+        .filter(m => !m.id.includes('instruct') && !m.id.includes('0125') && !m.id.includes('0613'))
+        .map(m => m.id)
+        .sort((a, b) => {
+          // Prioritize newer/better models
+          const priority = ['o3', 'o1', 'gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5'];
+          const aP = priority.findIndex(p => a.startsWith(p));
+          const bP = priority.findIndex(p => b.startsWith(p));
+          if (aP !== bP) return (aP === -1 ? 99 : aP) - (bP === -1 ? 99 : bP);
+          return a.localeCompare(b);
+        });
+      setOpenAIModels(chatModels);
+      // Set default if current selection not in list
+      if (chatModels.length > 0 && !chatModels.includes(openAIModel)) {
+        setOpenAIModel(chatModels.find(m => m.includes('gpt-4o')) || chatModels[0]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch OpenAI models:', err);
+    } finally {
+      setLoadingModels(prev => ({ ...prev, openai: false }));
+    }
+  }, [openAIKey, openAIModel]);
+
+  // Fetch available Gemini models
+  const fetchGeminiModels = useCallback(async () => {
+    if (!geminiKey || geminiKey.length < 10) return;
+    setLoadingModels(prev => ({ ...prev, gemini: true }));
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`);
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      // Filter for generateContent capable models
+      const genModels = data.models
+        .filter(m => 
+          m.supportedGenerationMethods?.includes('generateContent') &&
+          (m.name.includes('gemini'))
+        )
+        .map(m => m.name.replace('models/', ''))
+        .sort((a, b) => {
+          // Prioritize newer models
+          const priority = ['gemini-2.0', 'gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0'];
+          const aP = priority.findIndex(p => a.startsWith(p));
+          const bP = priority.findIndex(p => b.startsWith(p));
+          if (aP !== bP) return (aP === -1 ? 99 : aP) - (bP === -1 ? 99 : bP);
+          return a.localeCompare(b);
+        });
+      setGeminiModels(genModels);
+      // Set default if current selection not in list
+      if (genModels.length > 0 && !genModels.includes(geminiModel)) {
+        setGeminiModel(genModels.find(m => m.includes('2.0-flash')) || genModels[0]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch Gemini models:', err);
+    } finally {
+      setLoadingModels(prev => ({ ...prev, gemini: false }));
+    }
+  }, [geminiKey, geminiModel]);
+
+  // Auto-fetch models when API keys are entered
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (openAIKey && openAIKey.length >= 20) {
+        fetchOpenAIModels();
+      }
+    }, 500); // Debounce
+    return () => clearTimeout(timer);
+  }, [openAIKey, fetchOpenAIModels]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (geminiKey && geminiKey.length >= 20) {
+        fetchGeminiModels();
+      }
+    }, 500); // Debounce
+    return () => clearTimeout(timer);
+  }, [geminiKey, fetchGeminiModels]);
 
   // Retry wrapper with exponential backoff for rate limits
   const withRetry = useCallback(async (fn, maxAttempts = 5) => {
@@ -637,13 +734,13 @@ Output ONLY valid JSON.`;
                     </div>
                     <div>
                       <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.openai.color.text, marginBottom: 8 }}>
-                        MODEL
+                        MODEL {loadingModels.openai && <span style={{ opacity: 0.5 }}>...</span>}
                       </div>
                       <select
                         value={openAIModel}
                         onChange={e => setOpenAIModel(e.target.value)}
                         style={{
-                          width: 140,
+                          width: 180,
                           height: 36,
                           fontSize: 10,
                           padding: '0 8px',
@@ -655,11 +752,19 @@ Output ONLY valid JSON.`;
                           fontFamily: 'inherit'
                         }}
                       >
-                        <option value="gpt-4o">GPT-4o</option>
-                        <option value="gpt-4o-mini">GPT-4o Mini</option>
-                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                        <option value="o1">o1</option>
-                        <option value="o1-mini">o1-mini</option>
+                        {openAIModels.length > 0 ? (
+                          openAIModels.map(m => (
+                            <option key={m} value={m}>{m}</option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="gpt-4o">gpt-4o</option>
+                            <option value="gpt-4o-mini">gpt-4o-mini</option>
+                            <option value="gpt-4-turbo">gpt-4-turbo</option>
+                            <option value="o1">o1</option>
+                            <option value="o1-mini">o1-mini</option>
+                          </>
+                        )}
                       </select>
                     </div>
                   </div>
@@ -692,13 +797,13 @@ Output ONLY valid JSON.`;
                     </div>
                     <div>
                       <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.gemini.color.text, marginBottom: 8 }}>
-                        MODEL
+                        MODEL {loadingModels.gemini && <span style={{ opacity: 0.5 }}>...</span>}
                       </div>
                       <select
                         value={geminiModel}
                         onChange={e => setGeminiModel(e.target.value)}
                         style={{
-                          width: 160,
+                          width: 220,
                           height: 36,
                           fontSize: 10,
                           padding: '0 8px',
@@ -710,10 +815,18 @@ Output ONLY valid JSON.`;
                           fontFamily: 'inherit'
                         }}
                       >
-                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                        <option value="gemini-2.0-flash-thinking-exp">Gemini 2.0 Flash Thinking</option>
-                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                        {geminiModels.length > 0 ? (
+                          geminiModels.map(m => (
+                            <option key={m} value={m}>{m}</option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                            <option value="gemini-2.0-flash-thinking-exp-01-21">gemini-2.0-flash-thinking</option>
+                            <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                            <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                          </>
+                        )}
                       </select>
                     </div>
                   </div>
