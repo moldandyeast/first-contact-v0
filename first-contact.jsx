@@ -8,6 +8,8 @@ export default function FirstContact() {
   const [error, setError] = useState(null);
   const [roundNum, setRoundNum] = useState(0);
   const [totalRounds, setTotalRounds] = useState(6);
+  const [paceDelay, setPaceDelay] = useState(3); // seconds between calls
+  const [retryStatus, setRetryStatus] = useState(null); // { attempt, maxAttempts, waitTime }
   
   // API Keys
   const [openAIKey, setOpenAIKey] = useState('');
@@ -163,6 +165,34 @@ Output ONLY valid JSON.`;
   };
 
   const delay = ms => new Promise(r => setTimeout(r, ms));
+
+  // Retry wrapper with exponential backoff for rate limits
+  const withRetry = useCallback(async (fn, maxAttempts = 5) => {
+    let lastError;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        setRetryStatus(null);
+        return await fn();
+      } catch (err) {
+        lastError = err;
+        const isRateLimit = err.message.includes('429') || 
+                           err.message.toLowerCase().includes('rate') ||
+                           err.message.toLowerCase().includes('quota') ||
+                           err.message.toLowerCase().includes('too many');
+        
+        if (!isRateLimit || attempt === maxAttempts) {
+          setRetryStatus(null);
+          throw err;
+        }
+        
+        // Exponential backoff: 5s, 10s, 20s, 40s...
+        const waitTime = Math.min(5000 * Math.pow(2, attempt - 1), 60000);
+        setRetryStatus({ attempt, maxAttempts, waitTime: Math.round(waitTime / 1000) });
+        await delay(waitTime);
+      }
+    }
+    throw lastError;
+  }, []);
 
   const renderShapes = useCallback((shapes, entity) => {
     const canvas = document.createElement('canvas');
@@ -391,7 +421,9 @@ Output ONLY valid JSON.`;
         setCurrentTurn('A');
         await delay(500);
         
-        const respA = await callProvider(providerA, SYSTEM_A, entityAHistory.current, imgForA);
+        const respA = await withRetry(() => 
+          callProvider(providerA, SYSTEM_A, entityAHistory.current, imgForA)
+        );
         const shapesA = Array.isArray(respA.shapes) ? respA.shapes : [];
         
         entityAHistory.current.push(
@@ -413,14 +445,17 @@ Output ONLY valid JSON.`;
           image: imgForB 
         }, ...prev]);
         
-        await delay(1800);
+        // Pace delay between calls
+        await delay(paceDelay * 1000);
         if (abortRef.current) break;
         
         // Entity B's turn
         setCurrentTurn('B');
         await delay(500);
         
-        const respB = await callProvider(providerB, SYSTEM_B, entityBHistory.current, imgForB);
+        const respB = await withRetry(() => 
+          callProvider(providerB, SYSTEM_B, entityBHistory.current, imgForB)
+        );
         const shapesB = Array.isArray(respB.shapes) ? respB.shapes : [];
         
         entityBHistory.current.push({ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/png', data: imgForB }}, { type: 'text', text: 'Respond.' }] });
@@ -438,7 +473,8 @@ Output ONLY valid JSON.`;
           image: imgForA 
         }, ...prev]);
         
-        await delay(1800);
+        // Pace delay between rounds
+        await delay(paceDelay * 1000);
       }
       
       setPhase('complete');
@@ -449,7 +485,7 @@ Output ONLY valid JSON.`;
       setIsRunning(false);
       setCurrentTurn(null);
     }
-  }, [callProvider, renderShapes, totalRounds, providerA, providerB]);
+  }, [callProvider, renderShapes, totalRounds, providerA, providerB, paceDelay, withRetry]);
 
   const stop = () => { abortRef.current = true; };
 
@@ -467,9 +503,12 @@ Output ONLY valid JSON.`;
         <span style={{ fontSize: 10, letterSpacing: '0.35em', fontWeight: 500 }}>FIRST CONTACT</span>
         {currentTurn && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 5, height: 5, borderRadius: '50%', background: getColors(currentTurn).primary, animation: 'pulse 1s infinite' }} />
-            <span style={{ fontSize: 10, letterSpacing: '0.1em', color: getColors(currentTurn).text }}>
-              {getProviderName(currentTurn).toUpperCase()} — {roundNum}/{totalRounds}
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: retryStatus ? '#f59e0b' : getColors(currentTurn).primary, animation: 'pulse 1s infinite' }} />
+            <span style={{ fontSize: 10, letterSpacing: '0.1em', color: retryStatus ? 'rgba(245,158,11,0.7)' : getColors(currentTurn).text }}>
+              {retryStatus 
+                ? `RATE LIMITED — RETRY ${retryStatus.attempt}/${retryStatus.maxAttempts} IN ${retryStatus.waitTime}s`
+                : `${getProviderName(currentTurn).toUpperCase()} — ${roundNum}/${totalRounds}`
+              }
             </span>
           </div>
         )}
@@ -603,27 +642,50 @@ Output ONLY valid JSON.`;
                 )}
               </div>
 
-              {/* Rounds */}
-              <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', marginBottom: 12 }}>ROUNDS</div>
-                <input
-                  type="number"
-                  min="1"
-                  max="50"
-                  value={totalRounds}
-                  onChange={e => setTotalRounds(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-                  style={{
-                    width: 64,
-                    height: 36,
-                    fontSize: 14,
-                    textAlign: 'center',
-                    background: 'transparent',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    color: '#fff',
-                    outline: 'none',
-                    fontFamily: 'inherit'
-                  }}
-                />
+              {/* Rounds & Pace */}
+              <div style={{ display: 'flex', gap: 32, marginBottom: 32, justifyContent: 'center' }}>
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', marginBottom: 12 }}>ROUNDS</div>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={totalRounds}
+                    onChange={e => setTotalRounds(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                    style={{
+                      width: 64,
+                      height: 36,
+                      fontSize: 14,
+                      textAlign: 'center',
+                      background: 'transparent',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      color: '#fff',
+                      outline: 'none',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', marginBottom: 12 }}>PACE (SEC)</div>
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={paceDelay}
+                    onChange={e => setPaceDelay(Math.max(1, Math.min(30, parseInt(e.target.value) || 3)))}
+                    style={{
+                      width: 64,
+                      height: 36,
+                      fontSize: 14,
+                      textAlign: 'center',
+                      background: 'transparent',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      color: '#fff',
+                      outline: 'none',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
               </div>
 
               <button
