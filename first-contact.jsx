@@ -106,36 +106,49 @@ Output ONLY valid JSON.`;
   const parseJSON = (text) => {
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) throw new Error('No JSON found in response');
-    let json = match[0]
-      .replace(/[\x00-\x1F\x7F]/g, ' ')  // Remove control characters
-      .replace(/,\s*}/g, '}')            // Remove trailing commas before }
-      .replace(/,\s*]/g, ']')            // Remove trailing commas before ]
-      .replace(/\n/g, '\\n')             // Escape newlines in strings
-      .replace(/\r/g, '\\r')             // Escape carriage returns
-      .replace(/\t/g, '\\t');            // Escape tabs
+    let json = match[0];
+    
+    // First attempt: direct parse
     try {
       return JSON.parse(json);
-    } catch (e) {
-      // Try fixing common issues
-      json = match[0]
-        .replace(/[\x00-\x1F\x7F]/g, ' ')
-        .replace(/,\s*}/g, '}')
-        .replace(/,\s*]/g, ']');
-      // Try to extract just shapes if full parse fails
-      const shapesMatch = json.match(/"shapes"\s*:\s*\[([\s\S]*?)\]/);
-      const intentMatch = json.match(/"intent"\s*:\s*"([^"]*)"/);
-      const notesMatch = json.match(/"notes"\s*:\s*"([\s\S]*?)(?:"|$)/);
-      if (shapesMatch) {
+    } catch (e1) {
+      // Second attempt: clean up common issues
+      try {
+        json = match[0]
+          .replace(/,\s*}/g, '}')           // Remove trailing commas before }
+          .replace(/,\s*]/g, ']');          // Remove trailing commas before ]
+        return JSON.parse(json);
+      } catch (e2) {
+        // Third attempt: extract fields manually
         try {
-          const shapes = JSON.parse('[' + shapesMatch[1] + ']');
+          const shapesMatch = match[0].match(/"shapes"\s*:\s*(\[[\s\S]*?\])/);
+          const intentMatch = match[0].match(/"intent"\s*:\s*"([^"]*)"/);
+          const notesMatch = match[0].match(/"notes"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+          
+          let shapes = [];
+          if (shapesMatch) {
+            try {
+              shapes = JSON.parse(shapesMatch[1]);
+            } catch {
+              // Try to parse individual shape objects
+              const shapeMatches = shapesMatch[1].matchAll(/\{[^{}]+\}/g);
+              for (const sm of shapeMatches) {
+                try {
+                  shapes.push(JSON.parse(sm[0]));
+                } catch {}
+              }
+            }
+          }
+          
           return {
             shapes,
             intent: intentMatch ? intentMatch[1] : '',
-            notes: notesMatch ? notesMatch[1].replace(/\\n/g, '\n') : ''
+            notes: notesMatch ? notesMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : ''
           };
-        } catch {}
+        } catch (e3) {
+          throw new Error('Failed to parse JSON: ' + e1.message);
+        }
       }
-      throw new Error('Failed to parse JSON: ' + e.message);
     }
   };
 
