@@ -380,9 +380,13 @@ Output ONLY valid JSON.`;
 
   // OpenAI API call with vision
   const callOpenAI = useCallback(async (system, history, imageData, previousNotes) => {
-    const messages = [
-      { role: 'system', content: system }
-    ];
+    const isO1 = openAIModel.startsWith('o1') || openAIModel.startsWith('o3');
+    
+    // o1 models don't support system messages - prepend to first user message
+    const messages = [];
+    if (!isO1) {
+      messages.push({ role: 'system', content: system });
+    }
     
     // Add limited history (last 2 exchanges only - notes carry the context)
     const recentHistory = history.slice(-4);
@@ -393,18 +397,11 @@ Output ONLY valid JSON.`;
         if (typeof h.content === 'string') {
           messages.push({ role: 'user', content: h.content });
         } else if (Array.isArray(h.content)) {
-          const parts = [];
-          for (const c of h.content) {
-            if (c.type === 'image' && c.source?.data) {
-              parts.push({ 
-                type: 'image_url', 
-                image_url: { url: `data:image/png;base64,${c.source.data}` } 
-              });
-            } else if (c.type === 'text' || c.text) {
-              parts.push({ type: 'text', text: c.text || '' });
-            }
+          // Skip images in history for simplicity - notes carry context
+          const textParts = h.content.filter(c => c.type === 'text' || c.text).map(c => c.text || '').join(' ');
+          if (textParts) {
+            messages.push({ role: 'user', content: textParts });
           }
-          messages.push({ role: 'user', content: parts });
         }
       }
     }
@@ -414,17 +411,33 @@ Output ONLY valid JSON.`;
       ? `\n\nYOUR RESEARCH NOTEPAD FROM PREVIOUS OBSERVATIONS:\n${previousNotes}\n\nUpdate these notes based on what you see now.`
       : '\n\nThis is your first observation. Start your research notepad.';
     
+    const basePrompt = isO1 ? system + '\n\n' : '';
+    
     // Add current message
-    if (imageData) {
+    if (imageData && !isO1) {
+      // Vision models
       messages.push({
         role: 'user',
         content: [
-          { type: 'image_url', image_url: { url: `data:image/png;base64,${imageData}` } },
-          { type: 'text', text: `New signal appeared on the glass. Analyze and respond.${notesSection}\n\nOutput JSON only.` }
+          { type: 'image_url', image_url: { url: `data:image/png;base64,${imageData}`, detail: 'low' } },
+          { type: 'text', text: `${basePrompt}New signal appeared on the glass. Analyze and respond.${notesSection}\n\nOutput JSON only.` }
         ]
       });
     } else {
-      messages.push({ role: 'user', content: `Glass is empty. Make first contact.${notesSection}\n\nOutput JSON only.` });
+      // Text-only (o1 models or no image)
+      const imgNote = imageData ? '[An image of geometric shapes was shown on the glass]' : 'Glass is empty.';
+      messages.push({ role: 'user', content: `${basePrompt}${imgNote} Make your probe.${notesSection}\n\nOutput JSON only.` });
+    }
+
+    const body = { 
+      model: openAIModel, 
+      max_tokens: 1500,
+      messages 
+    };
+    
+    // o1 models don't support temperature
+    if (!isO1) {
+      body.temperature = 0.9;
     }
 
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -433,12 +446,7 @@ Output ONLY valid JSON.`;
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${openAIKey}`
       },
-      body: JSON.stringify({ 
-        model: openAIModel, 
-        max_tokens: 1500,
-        temperature: 0.9,
-        messages 
-      })
+      body: JSON.stringify(body)
     });
 
     if (!res.ok) {
@@ -448,6 +456,9 @@ Output ONLY valid JSON.`;
     
     const data = await res.json();
     const text = data.choices?.[0]?.message?.content || '';
+    if (!text) {
+      throw new Error('OpenAI returned empty response');
+    }
     return parseJSON(text);
   }, [openAIKey, openAIModel]);
 
