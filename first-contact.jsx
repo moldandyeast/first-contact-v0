@@ -729,321 +729,379 @@ Output valid JSON only. shapes array must have at least one shape.`;
       {/* Main */}
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
         
-        {/* Intro */}
+        {/* Intro / Landing */}
         {phase === 'intro' && (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto', padding: '40px 20px' }}>
-            <div style={{ maxWidth: 500, textAlign: 'center', width: '100%' }}>
-              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, lineHeight: 1.7, marginBottom: 40 }}>
-                Two AI entities. Separate contexts. No shared memory.<br/>
-                Communication through geometry only.
-              </p>
+            <div style={{ maxWidth: 640, width: '100%' }}>
               
-              {/* Provider Selection */}
-              <div style={{ display: 'flex', gap: 24, marginBottom: 32, justifyContent: 'center' }}>
-                {/* Entity A */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', marginBottom: 8 }}>ENTITY A</div>
-                  <select
-                    value={providerA}
-                    onChange={e => setProviderA(e.target.value)}
-                    style={{
-                      width: 140,
-                      height: 36,
-                      fontSize: 11,
-                      padding: '0 12px',
-                      background: '#0a0a0a',
-                      border: `1px solid ${providers[providerA].color.dim}`,
-                      color: providers[providerA].color.primary,
-                      outline: 'none',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit'
-                    }}
-                  >
-                    <option value="openai">OpenAI</option>
-                    <option value="gemini">Gemini</option>
-                    <option value="anthropic">Claude</option>
-                  </select>
-                </div>
-
-                <div style={{ fontSize: 20, color: 'rgba(255,255,255,0.15)', alignSelf: 'center', marginTop: 16 }}>⟷</div>
-
-                {/* Entity B */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', marginBottom: 8 }}>ENTITY B</div>
-                  <select
-                    value={providerB}
-                    onChange={e => setProviderB(e.target.value)}
-                    style={{
-                      width: 140,
-                      height: 36,
-                      fontSize: 11,
-                      padding: '0 12px',
-                      background: '#0a0a0a',
-                      border: `1px solid ${providers[providerB].color.dim}`,
-                      color: providers[providerB].color.primary,
-                      outline: 'none',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit'
-                    }}
-                  >
-                    <option value="openai">OpenAI</option>
-                    <option value="gemini">Gemini</option>
-                    <option value="anthropic">Claude</option>
-                  </select>
-                </div>
+              {/* Hero Section */}
+              <div style={{ textAlign: 'center', marginBottom: 48 }}>
+                <pre style={{ 
+                  fontFamily: 'monospace', 
+                  fontSize: 11, 
+                  lineHeight: 1.4, 
+                  color: 'rgba(255,255,255,0.25)', 
+                  marginBottom: 32,
+                  letterSpacing: '0.05em'
+                }}>
+{`      ◯ ─────────── ◯
+     A       ║       B
+      │    glass    │
+      │   barrier   │
+      ▽             ▽
+     ┌─┐           ┌─┐
+     │●│  ←─────→  │◯│
+     └─┘           └─┘`}
+                </pre>
+                
+                <p style={{ 
+                  color: 'rgba(255,255,255,0.5)', 
+                  fontSize: 13, 
+                  lineHeight: 1.8, 
+                  maxWidth: 480, 
+                  margin: '0 auto 16px',
+                  fontWeight: 300
+                }}>
+                  Two AI entities on opposite sides of a glass barrier.<br/>
+                  No language. Only geometric shapes on a 400×400 canvas.
+                </p>
+                <p style={{ 
+                  color: 'rgba(255,255,255,0.3)', 
+                  fontSize: 12, 
+                  fontStyle: 'italic'
+                }}>
+                  What emerges when minds can only speak in circles and lines?
+                </p>
               </div>
+
+              {/* Configuration Card */}
+              <div style={{ 
+                background: 'rgba(255,255,255,0.02)', 
+                border: '1px solid rgba(255,255,255,0.08)', 
+                padding: 32,
+                marginBottom: 24
+              }}>
+                
+                {/* Entity Selection Row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginBottom: 28 }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>ENTITY A</div>
+                    <select
+                      value={providerA}
+                      onChange={e => setProviderA(e.target.value)}
+                      style={{
+                        width: 130,
+                        height: 38,
+                        fontSize: 11,
+                        padding: '0 12px',
+                        background: '#0a0a0a',
+                        border: `1px solid ${providers[providerA].color.dim}`,
+                        color: providers[providerA].color.primary,
+                        outline: 'none',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      <option value="openai">OpenAI</option>
+                      <option value="gemini">Gemini</option>
+                      <option value="anthropic">Claude</option>
+                    </select>
+                  </div>
+
+                  <div style={{ 
+                    fontSize: 18, 
+                    color: 'rgba(255,255,255,0.15)', 
+                    marginTop: 20,
+                    fontFamily: 'monospace'
+                  }}>⟷</div>
+
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>ENTITY B</div>
+                    <select
+                      value={providerB}
+                      onChange={e => setProviderB(e.target.value)}
+                      style={{
+                        width: 130,
+                        height: 38,
+                        fontSize: 11,
+                        padding: '0 12px',
+                        background: '#0a0a0a',
+                        border: `1px solid ${providers[providerB].color.dim}`,
+                        color: providers[providerB].color.primary,
+                        outline: 'none',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      <option value="openai">OpenAI</option>
+                      <option value="gemini">Gemini</option>
+                      <option value="anthropic">Claude</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 24 }} />
               
-              {/* API Keys & Models */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
-                {/* OpenAI Config */}
-                {(providerA === 'openai' || providerB === 'openai') && (
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <div>
-                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.openai.color.text, marginBottom: 8 }}>
-                        OPENAI API KEY
+                {/* API Keys & Models */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 24 }}>
+                  {/* OpenAI Config */}
+                  {(providerA === 'openai' || providerB === 'openai') && (
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', justifyContent: 'center', flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ fontSize: 9, letterSpacing: '0.15em', color: providers.openai.color.text, marginBottom: 8 }}>
+                          OPENAI KEY
+                        </div>
+                        <input
+                          type="password"
+                          value={openAIKey}
+                          onChange={e => setOpenAIKey(e.target.value)}
+                          placeholder="sk-..."
+                          style={{
+                            width: 220,
+                            height: 38,
+                            fontSize: 11,
+                            padding: '0 12px',
+                            background: 'rgba(0,0,0,0.3)',
+                            border: `1px solid ${openAIKey ? providers.openai.color.dim : 'rgba(255,255,255,0.1)'}`,
+                            color: '#fff',
+                            outline: 'none',
+                            fontFamily: 'inherit'
+                          }}
+                        />
                       </div>
-                      <input
-                        type="password"
-                        value={openAIKey}
-                        onChange={e => setOpenAIKey(e.target.value)}
-                        placeholder="sk-..."
-                        style={{
-                          width: 200,
-                          height: 36,
-                          fontSize: 11,
-                          padding: '0 12px',
-                          background: 'transparent',
-                          border: `1px solid ${openAIKey ? providers.openai.color.dim : 'rgba(255,255,255,0.15)'}`,
-                          color: '#fff',
-                          outline: 'none',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.openai.color.text, marginBottom: 8 }}>
-                        MODEL {loadingModels.openai && <span style={{ opacity: 0.5 }}>...</span>}
+                      <div>
+                        <div style={{ fontSize: 9, letterSpacing: '0.15em', color: providers.openai.color.text, marginBottom: 8 }}>
+                          MODEL {loadingModels.openai && <span style={{ opacity: 0.5 }}>...</span>}
+                        </div>
+                        <select
+                          value={openAIModel}
+                          onChange={e => setOpenAIModel(e.target.value)}
+                          style={{
+                            width: 180,
+                            height: 38,
+                            fontSize: 10,
+                            padding: '0 10px',
+                            background: '#0a0a0a',
+                            border: `1px solid ${providers.openai.color.dim}`,
+                            color: providers.openai.color.primary,
+                            outline: 'none',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit'
+                          }}
+                        >
+                          {openAIModels.length > 0 ? (
+                            openAIModels.map(m => <option key={m} value={m}>{m}</option>)
+                          ) : (
+                            <>
+                              <option value="gpt-4o">gpt-4o</option>
+                              <option value="gpt-4o-mini">gpt-4o-mini</option>
+                              <option value="gpt-4-turbo">gpt-4-turbo</option>
+                              <option value="o1">o1</option>
+                              <option value="o1-mini">o1-mini</option>
+                            </>
+                          )}
+                        </select>
                       </div>
-                      <select
-                        value={openAIModel}
-                        onChange={e => setOpenAIModel(e.target.value)}
-                        style={{
-                          width: 180,
-                          height: 36,
-                          fontSize: 10,
-                          padding: '0 8px',
-                          background: '#0a0a0a',
-                          border: `1px solid ${providers.openai.color.dim}`,
-                          color: providers.openai.color.primary,
-                          outline: 'none',
-                          cursor: 'pointer',
-                          fontFamily: 'inherit'
-                        }}
-                      >
-                        {openAIModels.length > 0 ? (
-                          openAIModels.map(m => (
-                            <option key={m} value={m}>{m}</option>
-                          ))
-                        ) : (
-                          <>
-                            <option value="gpt-4o">gpt-4o</option>
-                            <option value="gpt-4o-mini">gpt-4o-mini</option>
-                            <option value="gpt-4-turbo">gpt-4-turbo</option>
-                            <option value="o1">o1</option>
-                            <option value="o1-mini">o1-mini</option>
-                          </>
-                        )}
-                      </select>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Gemini Config */}
-                {(providerA === 'gemini' || providerB === 'gemini') && (
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <div>
-                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.gemini.color.text, marginBottom: 8 }}>
-                        GEMINI API KEY
+                  {/* Gemini Config */}
+                  {(providerA === 'gemini' || providerB === 'gemini') && (
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', justifyContent: 'center', flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ fontSize: 9, letterSpacing: '0.15em', color: providers.gemini.color.text, marginBottom: 8 }}>
+                          GEMINI KEY
+                        </div>
+                        <input
+                          type="password"
+                          value={geminiKey}
+                          onChange={e => setGeminiKey(e.target.value)}
+                          placeholder="AIza..."
+                          style={{
+                            width: 220,
+                            height: 38,
+                            fontSize: 11,
+                            padding: '0 12px',
+                            background: 'rgba(0,0,0,0.3)',
+                            border: `1px solid ${geminiKey ? providers.gemini.color.dim : 'rgba(255,255,255,0.1)'}`,
+                            color: '#fff',
+                            outline: 'none',
+                            fontFamily: 'inherit'
+                          }}
+                        />
                       </div>
-                      <input
-                        type="password"
-                        value={geminiKey}
-                        onChange={e => setGeminiKey(e.target.value)}
-                        placeholder="AIza..."
-                        style={{
-                          width: 200,
-                          height: 36,
-                          fontSize: 11,
-                          padding: '0 12px',
-                          background: 'transparent',
-                          border: `1px solid ${geminiKey ? providers.gemini.color.dim : 'rgba(255,255,255,0.15)'}`,
-                          color: '#fff',
-                          outline: 'none',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.gemini.color.text, marginBottom: 8 }}>
-                        MODEL {loadingModels.gemini && <span style={{ opacity: 0.5 }}>...</span>}
+                      <div>
+                        <div style={{ fontSize: 9, letterSpacing: '0.15em', color: providers.gemini.color.text, marginBottom: 8 }}>
+                          MODEL {loadingModels.gemini && <span style={{ opacity: 0.5 }}>...</span>}
+                        </div>
+                        <select
+                          value={geminiModel}
+                          onChange={e => setGeminiModel(e.target.value)}
+                          style={{
+                            width: 180,
+                            height: 38,
+                            fontSize: 10,
+                            padding: '0 10px',
+                            background: '#0a0a0a',
+                            border: `1px solid ${providers.gemini.color.dim}`,
+                            color: providers.gemini.color.primary,
+                            outline: 'none',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit'
+                          }}
+                        >
+                          {geminiModels.length > 0 ? (
+                            geminiModels.map(m => <option key={m} value={m}>{m}</option>)
+                          ) : (
+                            <>
+                              <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                              <option value="gemini-2.0-flash-thinking-exp-01-21">gemini-2.0-flash-thinking</option>
+                              <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                              <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                            </>
+                          )}
+                        </select>
                       </div>
-                      <select
-                        value={geminiModel}
-                        onChange={e => setGeminiModel(e.target.value)}
-                        style={{
-                          width: 220,
-                          height: 36,
-                          fontSize: 10,
-                          padding: '0 8px',
-                          background: '#0a0a0a',
-                          border: `1px solid ${providers.gemini.color.dim}`,
-                          color: providers.gemini.color.primary,
-                          outline: 'none',
-                          cursor: 'pointer',
-                          fontFamily: 'inherit'
-                        }}
-                      >
-                        {geminiModels.length > 0 ? (
-                          geminiModels.map(m => (
-                            <option key={m} value={m}>{m}</option>
-                          ))
-                        ) : (
-                          <>
-                            <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-                            <option value="gemini-2.0-flash-thinking-exp-01-21">gemini-2.0-flash-thinking</option>
-                            <option value="gemini-1.5-pro">gemini-1.5-pro</option>
-                            <option value="gemini-1.5-flash">gemini-1.5-flash</option>
-                          </>
-                        )}
-                      </select>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Anthropic/Claude Config */}
-                {(providerA === 'anthropic' || providerB === 'anthropic') && (
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <div>
-                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.anthropic.color.text, marginBottom: 8 }}>
-                        ANTHROPIC API KEY
+                  {/* Anthropic/Claude Config */}
+                  {(providerA === 'anthropic' || providerB === 'anthropic') && (
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', justifyContent: 'center', flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ fontSize: 9, letterSpacing: '0.15em', color: providers.anthropic.color.text, marginBottom: 8 }}>
+                          ANTHROPIC KEY
+                        </div>
+                        <input
+                          type="password"
+                          value={anthropicKey}
+                          onChange={e => setAnthropicKey(e.target.value)}
+                          placeholder="sk-ant-..."
+                          style={{
+                            width: 220,
+                            height: 38,
+                            fontSize: 11,
+                            padding: '0 12px',
+                            background: 'rgba(0,0,0,0.3)',
+                            border: `1px solid ${anthropicKey ? providers.anthropic.color.dim : 'rgba(255,255,255,0.1)'}`,
+                            color: '#fff',
+                            outline: 'none',
+                            fontFamily: 'inherit'
+                          }}
+                        />
                       </div>
-                      <input
-                        type="password"
-                        value={anthropicKey}
-                        onChange={e => setAnthropicKey(e.target.value)}
-                        placeholder="sk-ant-..."
-                        style={{
-                          width: 200,
-                          height: 36,
-                          fontSize: 11,
-                          padding: '0 12px',
-                          background: 'transparent',
-                          border: `1px solid ${anthropicKey ? providers.anthropic.color.dim : 'rgba(255,255,255,0.15)'}`,
-                          color: '#fff',
-                          outline: 'none',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.anthropic.color.text, marginBottom: 8 }}>
-                        MODEL
+                      <div>
+                        <div style={{ fontSize: 9, letterSpacing: '0.15em', color: providers.anthropic.color.text, marginBottom: 8 }}>
+                          MODEL
+                        </div>
+                        <select
+                          value={claudeModel}
+                          onChange={e => setClaudeModel(e.target.value)}
+                          style={{
+                            width: 180,
+                            height: 38,
+                            fontSize: 10,
+                            padding: '0 10px',
+                            background: '#0a0a0a',
+                            border: `1px solid ${providers.anthropic.color.dim}`,
+                            color: providers.anthropic.color.primary,
+                            outline: 'none',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit'
+                          }}
+                        >
+                          <option value="claude-sonnet-4-20250514">claude-sonnet-4</option>
+                          <option value="claude-opus-4-20250514">claude-opus-4</option>
+                          <option value="claude-3-5-sonnet-20241022">claude-3.5-sonnet</option>
+                          <option value="claude-3-5-haiku-20241022">claude-3.5-haiku</option>
+                          <option value="claude-3-opus-20240229">claude-3-opus</option>
+                        </select>
                       </div>
-                      <select
-                        value={claudeModel}
-                        onChange={e => setClaudeModel(e.target.value)}
-                        style={{
-                          width: 220,
-                          height: 36,
-                          fontSize: 10,
-                          padding: '0 8px',
-                          background: '#0a0a0a',
-                          border: `1px solid ${providers.anthropic.color.dim}`,
-                          color: providers.anthropic.color.primary,
-                          outline: 'none',
-                          cursor: 'pointer',
-                          fontFamily: 'inherit'
-                        }}
-                      >
-                        <option value="claude-sonnet-4-20250514">claude-sonnet-4</option>
-                        <option value="claude-opus-4-20250514">claude-opus-4</option>
-                        <option value="claude-3-5-sonnet-20241022">claude-3.5-sonnet</option>
-                        <option value="claude-3-5-haiku-20241022">claude-3.5-haiku</option>
-                        <option value="claude-3-opus-20240229">claude-3-opus</option>
-                      </select>
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Rounds & Pace */}
-              <div style={{ display: 'flex', gap: 32, marginBottom: 32, justifyContent: 'center' }}>
-                <div>
-                  <div style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', marginBottom: 12 }}>ROUNDS</div>
-                  <input
-                    type="number"
-                    min="1"
-                    max="299"
-                    value={totalRounds}
-                    onChange={e => setTotalRounds(Math.max(1, Math.min(299, parseInt(e.target.value) || 1)))}
-                    style={{
-                      width: 64,
-                      height: 36,
-                      fontSize: 14,
-                      textAlign: 'center',
-                      background: 'transparent',
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      color: '#fff',
-                      outline: 'none',
-                      fontFamily: 'inherit'
-                    }}
-                  />
+                  )}
                 </div>
-                <div>
-                  <div style={{ fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', marginBottom: 12 }}>PACE (SEC)</div>
-                  <input
-                    type="number"
-                    min="1"
-                    max="30"
-                    value={paceDelay}
-                    onChange={e => setPaceDelay(Math.max(1, Math.min(30, parseInt(e.target.value) || 3)))}
-                    style={{
-                      width: 64,
-                      height: 36,
-                      fontSize: 14,
-                      textAlign: 'center',
-                      background: 'transparent',
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      color: '#fff',
-                      outline: 'none',
-                      fontFamily: 'inherit'
-                    }}
-                  />
+
+                {/* Rounds & Pace Row */}
+                <div style={{ display: 'flex', gap: 40, justifyContent: 'center', alignItems: 'flex-end' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 9, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>ROUNDS</div>
+                    <input
+                      type="number"
+                      min="1"
+                      max="299"
+                      value={totalRounds}
+                      onChange={e => setTotalRounds(Math.max(1, Math.min(299, parseInt(e.target.value) || 1)))}
+                      style={{
+                        width: 70,
+                        height: 38,
+                        fontSize: 14,
+                        textAlign: 'center',
+                        background: 'rgba(0,0,0,0.3)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#fff',
+                        outline: 'none',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 9, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>PACE (SEC)</div>
+                    <input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={paceDelay}
+                      onChange={e => setPaceDelay(Math.max(1, Math.min(30, parseInt(e.target.value) || 3)))}
+                      style={{
+                        width: 70,
+                        height: 38,
+                        fontSize: 14,
+                        textAlign: 'center',
+                        background: 'rgba(0,0,0,0.3)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#fff',
+                        outline: 'none',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* System Prompts */}
-              <div style={{ marginBottom: 32 }}>
+              {/* System Prompts Collapsible */}
+              <div style={{ marginBottom: 28 }}>
                 <button
                   onClick={() => setShowPrompts(!showPrompts)}
                   style={{
                     fontSize: 9,
-                    letterSpacing: '0.2em',
+                    letterSpacing: '0.15em',
                     color: 'rgba(255,255,255,0.35)',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
-                    padding: '8px 0'
+                    padding: '8px 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
                   }}
                 >
-                  {showPrompts ? '▼' : '▶'} SYSTEM PROMPTS
+                  <span style={{ fontSize: 8 }}>{showPrompts ? '▼' : '▶'}</span> CUSTOMIZE SYSTEM PROMPTS
                 </button>
                 
                 {showPrompts && (
-                  <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div style={{ 
+                    marginTop: 16, 
+                    padding: 20, 
+                    background: 'rgba(255,255,255,0.02)', 
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 16 
+                  }}>
                     <div>
-                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers[providerA].color.text, marginBottom: 8, textAlign: 'left' }}>
+                      <div style={{ fontSize: 9, letterSpacing: '0.15em', color: providers[providerA].color.text, marginBottom: 8 }}>
                         ENTITY A ({providers[providerA].name.toUpperCase()})
                       </div>
                       <textarea
@@ -1051,11 +1109,11 @@ Output valid JSON only. shapes array must have at least one shape.`;
                         onChange={e => setSystemA(e.target.value)}
                         style={{
                           width: '100%',
-                          height: 150,
+                          height: 140,
                           fontSize: 10,
                           lineHeight: 1.5,
                           padding: 12,
-                          background: 'rgba(255,255,255,0.02)',
+                          background: 'rgba(0,0,0,0.3)',
                           border: `1px solid ${providers[providerA].color.dim}`,
                           color: 'rgba(255,255,255,0.7)',
                           outline: 'none',
@@ -1065,7 +1123,7 @@ Output valid JSON only. shapes array must have at least one shape.`;
                       />
                     </div>
                     <div>
-                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers[providerB].color.text, marginBottom: 8, textAlign: 'left' }}>
+                      <div style={{ fontSize: 9, letterSpacing: '0.15em', color: providers[providerB].color.text, marginBottom: 8 }}>
                         ENTITY B ({providers[providerB].name.toUpperCase()})
                       </div>
                       <textarea
@@ -1073,11 +1131,11 @@ Output valid JSON only. shapes array must have at least one shape.`;
                         onChange={e => setSystemB(e.target.value)}
                         style={{
                           width: '100%',
-                          height: 150,
+                          height: 140,
                           fontSize: 10,
                           lineHeight: 1.5,
                           padding: 12,
-                          background: 'rgba(255,255,255,0.02)',
+                          background: 'rgba(0,0,0,0.3)',
                           border: `1px solid ${providers[providerB].color.dim}`,
                           color: 'rgba(255,255,255,0.7)',
                           outline: 'none',
@@ -1093,7 +1151,7 @@ Output valid JSON only. shapes array must have at least one shape.`;
                         letterSpacing: '0.1em',
                         color: 'rgba(255,255,255,0.3)',
                         background: 'none',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(255,255,255,0.08)',
                         padding: '6px 12px',
                         cursor: 'pointer',
                         fontFamily: 'inherit',
@@ -1106,28 +1164,60 @@ Output valid JSON only. shapes array must have at least one shape.`;
                 )}
               </div>
 
-              <button
-                onClick={run}
-                disabled={!canStart()}
-                style={{ 
-                  fontSize: 10, 
-                  letterSpacing: '0.25em', 
-                  border: '1px solid rgba(255,255,255,0.15)', 
-                  background: canStart() ? 'rgba(255,255,255,0.05)' : 'none', 
-                  color: canStart() ? '#fff' : 'rgba(255,255,255,0.25)', 
-                  padding: '14px 28px', 
-                  cursor: canStart() ? 'pointer' : 'not-allowed',
-                  fontFamily: 'inherit'
-                }}
-              >
-                INITIATE
-              </button>
+              {/* CTA */}
+              <div style={{ textAlign: 'center' }}>
+                <button
+                  onClick={run}
+                  disabled={!canStart()}
+                  style={{ 
+                    fontSize: 11, 
+                    letterSpacing: '0.3em', 
+                    border: canStart() ? '1px solid rgba(255,255,255,0.25)' : '1px solid rgba(255,255,255,0.1)', 
+                    background: canStart() ? 'rgba(255,255,255,0.06)' : 'transparent', 
+                    color: canStart() ? '#fff' : 'rgba(255,255,255,0.25)', 
+                    padding: '16px 40px', 
+                    cursor: canStart() ? 'pointer' : 'not-allowed',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  INITIATE CONTACT
+                </button>
 
-              {!canStart() && (
-                <p style={{ fontSize: 10, color: 'rgba(255,100,100,0.5)', marginTop: 12 }}>
-                  Enter required API key(s) to begin
-                </p>
-              )}
+                {!canStart() && (
+                  <p style={{ fontSize: 10, color: 'rgba(255,120,120,0.6)', marginTop: 14 }}>
+                    Enter required API key(s) to begin
+                  </p>
+                )}
+              </div>
+
+              {/* Footer / GitHub */}
+              <div style={{ 
+                marginTop: 48, 
+                paddingTop: 24, 
+                borderTop: '1px solid rgba(255,255,255,0.05)', 
+                textAlign: 'center' 
+              }}>
+                <a 
+                  href="https://github.com/moldandyeast/first-contact-v0" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ 
+                    fontSize: 10, 
+                    letterSpacing: '0.1em', 
+                    color: 'rgba(255,255,255,0.3)', 
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.6 }}>
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  VIEW ON GITHUB
+                </a>
+              </div>
             </div>
           </div>
         )}
