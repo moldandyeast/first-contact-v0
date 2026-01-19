@@ -36,31 +36,37 @@ export default function FirstContact() {
   const entityANotes = useRef('');
   const entityBNotes = useRef('');
 
-  const DEFAULT_SYSTEM = `You are an intelligence isolated in void. Before you: a glass barrier. Beyond it—something exists. You don't know what. It may or may not perceive you. It may or may not be intelligent.
+  const DEFAULT_SYSTEM = `You are an intelligence isolated in void. Glass barrier ahead. Unknown entity on other side.
 
-YOUR ONLY COMMUNICATION: geometric shapes on a 400x400 canvas. No text, no symbols, no numbers—pure geometry.
+COMMUNICATE ONLY via geometric shapes on 400x400 canvas. No text/symbols/numbers.
+
+## OUTPUT FORMAT - STRICT JSON
+{
+  "shapes": [
+    {"type": "circle", "cx": 200, "cy": 200, "r": 40, "filled": false, "thickness": 2},
+    {"type": "line", "x1": 100, "y1": 100, "x2": 300, "y2": 100, "thickness": 2},
+    {"type": "dot", "cx": 200, "cy": 300, "r": 8}
+  ],
+  "intent": "brief description of what this drawing tests or communicates",
+  "notes": "CONFIRMED: ...\\nTESTING: ...\\nVOCAB: ...\\nNEXT: ..."
+}
+
+## SHAPE TYPES (canvas is 400x400, coordinates 0-400)
+- circle: {"type":"circle", "cx":200, "cy":200, "r":50, "filled":false, "thickness":2}
+- line: {"type":"line", "x1":50, "y1":50, "x2":350, "y2":50, "thickness":2}
+- dot: {"type":"dot", "cx":200, "cy":200, "r":5}
+- arc: {"type":"arc", "cx":200, "cy":200, "r":50, "startAngle":0, "endAngle":180, "thickness":2}
 
 ## RESEARCH NOTEPAD
-You maintain a research notepad—a persistent record of your observations. You will receive your previous notes and must output updated notes.
-
-Track: CONFIRMED (established facts), HYPOTHESES (theories being tested), VOCABULARY (shape meanings), NEXT (priorities)
-
-Keep notes CONCISE. Update ruthlessly.
-
-## OUTPUT FORMAT
-{"shapes":[...],"intent":"what this drawing does","notes":"updated notepad"}
-
-Shapes: circle{cx,cy,r,filled,thickness} line{x1,y1,x2,y2,thickness} arc{cx,cy,r,startAngle,endAngle,thickness} dot{cx,cy,r}
+Track in notes: CONFIRMED (facts), TESTING (hypotheses), VOCAB (shape meanings), NEXT (priorities)
 
 ## METHOD
-1. OBSERVE - patterns, repetition, symmetry, spatial relationships
-2. UPDATE NOTES - what's confirmed/disproven?
-3. DESIGN PROBE - test something or establish vocabulary
-4. NEVER JUST MIRROR - echo partially, then extend/question
+1. OBSERVE what appeared (or nothing if first turn)
+2. UPDATE your notepad
+3. DRAW shapes that TEST something or TEACH something
+4. Never just copy - acknowledge then extend/question
 
-Probes: counting, containment, pattern completion, direction, binary (filled/unfilled)
-
-Output ONLY valid JSON.`;
+Output valid JSON only. shapes array must have at least one shape.`;
 
   const [systemA, setSystemA] = useState(DEFAULT_SYSTEM);
   const [systemB, setSystemB] = useState(DEFAULT_SYSTEM);
@@ -598,7 +604,15 @@ Output ONLY valid JSON.`;
         const respA = await withRetry(() => 
           callProvider(providerA, systemA, entityAHistory.current, imgForA, entityANotes.current)
         );
-        const shapesA = Array.isArray(respA.shapes) ? respA.shapes : [];
+        // Validate and filter shapes
+        let shapesA = Array.isArray(respA.shapes) ? respA.shapes.filter(s => 
+          s && s.type && (s.cx != null || s.x1 != null)
+        ) : [];
+        // Fallback if no valid shapes
+        if (shapesA.length === 0) {
+          console.warn('Entity A returned no valid shapes:', respA);
+          shapesA = [{ type: 'dot', cx: 200, cy: 200, r: 10 }];
+        }
         
         // Update notes from response
         if (respA.notes) {
@@ -635,7 +649,15 @@ Output ONLY valid JSON.`;
         const respB = await withRetry(() => 
           callProvider(providerB, systemB, entityBHistory.current, imgForB, entityBNotes.current)
         );
-        const shapesB = Array.isArray(respB.shapes) ? respB.shapes : [];
+        // Validate and filter shapes
+        let shapesB = Array.isArray(respB.shapes) ? respB.shapes.filter(s => 
+          s && s.type && (s.cx != null || s.x1 != null)
+        ) : [];
+        // Fallback if no valid shapes
+        if (shapesB.length === 0) {
+          console.warn('Entity B returned no valid shapes:', respB);
+          shapesB = [{ type: 'dot', cx: 200, cy: 200, r: 10 }];
+        }
         
         // Update notes from response
         if (respB.notes) {
