@@ -16,12 +16,14 @@ export default function FirstContact() {
   // API Keys
   const [openAIKey, setOpenAIKey] = useState('');
   const [geminiKey, setGeminiKey] = useState('');
+  const [anthropicKey, setAnthropicKey] = useState('');
   
   // Provider selection for each entity
   const [providerA, setProviderA] = useState('openai');
   const [providerB, setProviderB] = useState('gemini');
   const [openAIModel, setOpenAIModel] = useState('gpt-4o');
   const [geminiModel, setGeminiModel] = useState('gemini-2.0-flash');
+  const [claudeModel, setClaudeModel] = useState('claude-sonnet-4-20250514');
   const [openAIModels, setOpenAIModels] = useState([]);
   const [geminiModels, setGeminiModels] = useState([]);
   const [loadingModels, setLoadingModels] = useState({ openai: false, gemini: false });
@@ -145,6 +147,11 @@ Output ONLY valid JSON.`;
       name: 'Gemini', 
       short: 'GEM',
       color: { primary: '#8b5cf6', dim: 'rgba(139,92,246,0.15)', text: 'rgba(139,92,246,0.7)' }
+    },
+    anthropic: { 
+      name: 'Claude', 
+      short: 'CLD',
+      color: { primary: '#f97316', dim: 'rgba(249,115,22,0.15)', text: 'rgba(249,115,22,0.7)' }
     }
   };
 
@@ -528,22 +535,94 @@ Output ONLY valid JSON.`;
     return parseJSON(text);
   }, [geminiKey, geminiModel]);
 
+  // Claude API call with vision
+  const callClaude = useCallback(async (system, history, imageData, previousNotes) => {
+    const messages = [];
+    
+    // Add limited history
+    const recentHistory = history.slice(-4);
+    for (const h of recentHistory) {
+      if (h.role === 'assistant') {
+        messages.push({ role: 'assistant', content: h.content });
+      } else if (h.role === 'user') {
+        if (typeof h.content === 'string') {
+          messages.push({ role: 'user', content: h.content });
+        } else if (Array.isArray(h.content)) {
+          const textParts = h.content.filter(c => c.type === 'text' || c.text).map(c => c.text || '').join(' ');
+          if (textParts) {
+            messages.push({ role: 'user', content: textParts });
+          }
+        }
+      }
+    }
+
+    // Build prompt with notes
+    const notesSection = previousNotes 
+      ? `\n\nYOUR RESEARCH NOTEPAD FROM PREVIOUS OBSERVATIONS:\n${previousNotes}\n\nUpdate these notes based on what you see now.`
+      : '\n\nThis is your first observation. Start your research notepad.';
+    
+    // Add current message
+    if (imageData) {
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/png', data: imageData } },
+          { type: 'text', text: `New signal appeared on the glass. Analyze and respond.${notesSection}\n\nOutput JSON only.` }
+        ]
+      });
+    } else {
+      messages.push({ role: 'user', content: `Glass is empty. Make first contact.${notesSection}\n\nOutput JSON only.` });
+    }
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({ 
+        model: claudeModel, 
+        max_tokens: 1500,
+        system: system,
+        messages 
+      })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(`Claude ${res.status}: ${errData.error?.message || 'Unknown error'}`);
+    }
+    
+    const data = await res.json();
+    const text = data.content?.map(c => c.text || '').join('') || '';
+    if (!text) {
+      throw new Error('Claude returned empty response');
+    }
+    return parseJSON(text);
+  }, [anthropicKey, claudeModel]);
+
   // Unified call function that routes to the right provider
   const callProvider = useCallback(async (provider, system, history, imageData, notes) => {
     if (provider === 'openai') {
       return callOpenAI(system, history, imageData, notes);
     } else if (provider === 'gemini') {
       return callGemini(system, history, imageData, notes);
+    } else if (provider === 'anthropic') {
+      return callClaude(system, history, imageData, notes);
     }
     throw new Error(`Unknown provider: ${provider}`);
-  }, [callOpenAI, callGemini]);
+  }, [callOpenAI, callGemini, callClaude]);
 
   const canStart = () => {
     const needsOpenAI = providerA === 'openai' || providerB === 'openai';
     const needsGemini = providerA === 'gemini' || providerB === 'gemini';
+    const needsAnthropic = providerA === 'anthropic' || providerB === 'anthropic';
     
     if (needsOpenAI && !openAIKey) return false;
     if (needsGemini && !geminiKey) return false;
+    if (needsAnthropic && !anthropicKey) return false;
     return true;
   };
 
@@ -715,8 +794,9 @@ Output ONLY valid JSON.`;
                       fontFamily: 'inherit'
                     }}
                   >
-                    <option value="openai">OpenAI (GPT-4o)</option>
+                    <option value="openai">OpenAI</option>
                     <option value="gemini">Gemini</option>
+                    <option value="anthropic">Claude</option>
                   </select>
                 </div>
 
@@ -741,8 +821,9 @@ Output ONLY valid JSON.`;
                       fontFamily: 'inherit'
                     }}
                   >
-                    <option value="openai">OpenAI (GPT-4o)</option>
+                    <option value="openai">OpenAI</option>
                     <option value="gemini">Gemini</option>
+                    <option value="anthropic">Claude</option>
                   </select>
                 </div>
               </div>
@@ -869,6 +950,61 @@ Output ONLY valid JSON.`;
                             <option value="gemini-1.5-flash">gemini-1.5-flash</option>
                           </>
                         )}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Anthropic/Claude Config */}
+                {(providerA === 'anthropic' || providerB === 'anthropic') && (
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <div>
+                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.anthropic.color.text, marginBottom: 8 }}>
+                        ANTHROPIC API KEY
+                      </div>
+                      <input
+                        type="password"
+                        value={anthropicKey}
+                        onChange={e => setAnthropicKey(e.target.value)}
+                        placeholder="sk-ant-..."
+                        style={{
+                          width: 200,
+                          height: 36,
+                          fontSize: 11,
+                          padding: '0 12px',
+                          background: 'transparent',
+                          border: `1px solid ${anthropicKey ? providers.anthropic.color.dim : 'rgba(255,255,255,0.15)'}`,
+                          color: '#fff',
+                          outline: 'none',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, letterSpacing: '0.2em', color: providers.anthropic.color.text, marginBottom: 8 }}>
+                        MODEL
+                      </div>
+                      <select
+                        value={claudeModel}
+                        onChange={e => setClaudeModel(e.target.value)}
+                        style={{
+                          width: 220,
+                          height: 36,
+                          fontSize: 10,
+                          padding: '0 8px',
+                          background: '#0a0a0a',
+                          border: `1px solid ${providers.anthropic.color.dim}`,
+                          color: providers.anthropic.color.primary,
+                          outline: 'none',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="claude-sonnet-4-20250514">claude-sonnet-4</option>
+                        <option value="claude-opus-4-20250514">claude-opus-4</option>
+                        <option value="claude-3-5-sonnet-20241022">claude-3.5-sonnet</option>
+                        <option value="claude-3-5-haiku-20241022">claude-3.5-haiku</option>
+                        <option value="claude-3-opus-20240229">claude-3-opus</option>
                       </select>
                     </div>
                   </div>
