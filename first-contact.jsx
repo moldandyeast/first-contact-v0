@@ -10,6 +10,8 @@ export default function FirstContact() {
   const [totalRounds, setTotalRounds] = useState(6);
   const [paceDelay, setPaceDelay] = useState(3); // seconds between calls
   const [retryStatus, setRetryStatus] = useState(null); // { attempt, maxAttempts, waitTime }
+  const [notesA, setNotesA] = useState('');
+  const [notesB, setNotesB] = useState('');
   
   // API Keys
   const [openAIKey, setOpenAIKey] = useState('');
@@ -413,6 +415,8 @@ Output ONLY valid JSON.`;
     entityBHistory.current = [];
     entityANotes.current = '';
     entityBNotes.current = '';
+    setNotesA('');
+    setNotesB('');
     setPhase('contact');
     
     let imgForA = null;
@@ -435,6 +439,7 @@ Output ONLY valid JSON.`;
         // Update notes from response
         if (respA.notes) {
           entityANotes.current = respA.notes;
+          setNotesA(respA.notes);
         }
         
         entityAHistory.current.push(
@@ -471,6 +476,7 @@ Output ONLY valid JSON.`;
         // Update notes from response
         if (respB.notes) {
           entityBNotes.current = respB.notes;
+          setNotesB(respB.notes);
         }
         
         entityBHistory.current.push({ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/png', data: imgForB }}, { type: 'text', text: 'Respond.' }] });
@@ -732,7 +738,7 @@ Output ONLY valid JSON.`;
         {(phase === 'contact' || phase === 'complete') && (
           <>
             {/* Canvases */}
-            <div style={{ width: '35%', minWidth: 280, display: 'flex', flexDirection: 'column', padding: 16, gap: 12 }}>
+            <div style={{ width: '25%', minWidth: 220, display: 'flex', flexDirection: 'column', padding: 16, gap: 12 }}>
               
               {/* Entity A */}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -760,6 +766,56 @@ Output ONLY valid JSON.`;
                     <img src={`data:image/png;base64,${latestB.image}`} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                   ) : (
                     <span style={{ fontSize: 9, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.12)' }}>AWAITING</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Research Notepads */}
+            <div style={{ width: '30%', minWidth: 280, borderLeft: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
+              
+              {/* Entity A Notepad */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderBottom: '1px solid rgba(255,255,255,0.06)', minHeight: 0 }}>
+                <div style={{ fontSize: 9, letterSpacing: '0.25em', color: colorsA.text, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 4, height: 4, borderRadius: '50%', background: colorsA.primary }} />
+                  {getProviderName('A').toUpperCase()} NOTEPAD
+                </div>
+                <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+                  {notesA ? (
+                    <pre style={{ 
+                      fontSize: 10, 
+                      color: 'rgba(255,255,255,0.6)', 
+                      lineHeight: 1.6, 
+                      margin: 0, 
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      fontFamily: 'inherit'
+                    }}>{notesA}</pre>
+                  ) : (
+                    <span style={{ fontSize: 9, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.12)' }}>NO OBSERVATIONS YET</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Entity B Notepad */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <div style={{ fontSize: 9, letterSpacing: '0.25em', color: colorsB.text, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 4, height: 4, borderRadius: '50%', background: colorsB.primary }} />
+                  {getProviderName('B').toUpperCase()} NOTEPAD
+                </div>
+                <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+                  {notesB ? (
+                    <pre style={{ 
+                      fontSize: 10, 
+                      color: 'rgba(255,255,255,0.6)', 
+                      lineHeight: 1.6, 
+                      margin: 0, 
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      fontFamily: 'inherit'
+                    }}>{notesB}</pre>
+                  ) : (
+                    <span style={{ fontSize: 9, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.12)' }}>NO OBSERVATIONS YET</span>
                   )}
                 </div>
               </div>
