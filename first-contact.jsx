@@ -165,6 +165,43 @@ Output ONLY valid JSON.`;
 
   const delay = ms => new Promise(r => setTimeout(r, ms));
 
+  // Robust JSON parsing with fallbacks
+  const parseJSON = (text) => {
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('No JSON found in response');
+    let json = match[0]
+      .replace(/[\x00-\x1F\x7F]/g, ' ')  // Remove control characters
+      .replace(/,\s*}/g, '}')            // Remove trailing commas before }
+      .replace(/,\s*]/g, ']')            // Remove trailing commas before ]
+      .replace(/\n/g, '\\n')             // Escape newlines in strings
+      .replace(/\r/g, '\\r')             // Escape carriage returns
+      .replace(/\t/g, '\\t');            // Escape tabs
+    try {
+      return JSON.parse(json);
+    } catch (e) {
+      // Try fixing common issues
+      json = match[0]
+        .replace(/[\x00-\x1F\x7F]/g, ' ')
+        .replace(/,\s*}/g, '}')
+        .replace(/,\s*]/g, ']');
+      // Try to extract just shapes if full parse fails
+      const shapesMatch = json.match(/"shapes"\s*:\s*\[([\s\S]*?)\]/);
+      const intentMatch = json.match(/"intent"\s*:\s*"([^"]*)"/);
+      const notesMatch = json.match(/"notes"\s*:\s*"([\s\S]*?)(?:"|$)/);
+      if (shapesMatch) {
+        try {
+          const shapes = JSON.parse('[' + shapesMatch[1] + ']');
+          return {
+            shapes,
+            intent: intentMatch ? intentMatch[1] : '',
+            notes: notesMatch ? notesMatch[1].replace(/\\n/g, '\n') : ''
+          };
+        } catch {}
+      }
+      throw new Error('Failed to parse JSON: ' + e.message);
+    }
+  };
+
   // Fetch available OpenAI models
   const fetchOpenAIModels = useCallback(async () => {
     if (!openAIKey || openAIKey.length < 10) return;
@@ -411,10 +448,7 @@ Output ONLY valid JSON.`;
     
     const data = await res.json();
     const text = data.choices?.[0]?.message?.content || '';
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('No JSON from OpenAI: ' + text.slice(0, 100));
-    
-    return JSON.parse(match[0]);
+    return parseJSON(text);
   }, [openAIKey, openAIModel]);
 
   // Gemini API call
@@ -480,10 +514,7 @@ Output ONLY valid JSON.`;
     
     const data = await res.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('No JSON from Gemini: ' + text.slice(0, 100));
-    
-    return JSON.parse(match[0]);
+    return parseJSON(text);
   }, [geminiKey, geminiModel]);
 
   // Unified call function that routes to the right provider
@@ -840,9 +871,9 @@ Output ONLY valid JSON.`;
                   <input
                     type="number"
                     min="1"
-                    max="50"
+                    max="299"
                     value={totalRounds}
-                    onChange={e => setTotalRounds(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                    onChange={e => setTotalRounds(Math.max(1, Math.min(299, parseInt(e.target.value) || 1)))}
                     style={{
                       width: 64,
                       height: 36,
